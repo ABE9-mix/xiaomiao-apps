@@ -1,0 +1,46 @@
+# ---- ESP-IDF 构建产物 ----
+build/
+managed_components/
+dependencies.lock.tmp
+sdkconfig.old
+*.bin.tmp
+*.map
+*.elf
+*.obj
+
+# 只保留我们自己产出的合并固件，其余 dist 内容（第三方 MicroPython 固件等）不入库
+dist/*
+!dist/xiaomiao-morse-merged.bin
+!dist/xiaomiao-midi-merged.bin
+
+# ---- 本机工具链 / 临时目录（体积巨大，绝不入库）----
+idf/
+idf-tools/
+tmp/
+build*.log
+*-log.txt
+
+# ---- 设备原始备份（含本机设备信息，不入库）----
+backup/
+
+# ---- 上游第三方源码：本地保留用于构建，仓库里只留链接 ----
+project/xueersi-idf/
+
+# ---- 下载缓存 / 社区固件 / 原始素材 ----
+community/
+dl/
+hermes-*.txt
+
+# ---- 本机专用脚本与日志（仓库里用 tools/build.ps1 + tools/flash.ps1）----
+run-build*.ps1
+build-*.ps1
+flash-xiaomiao.ps1
+flash-when-*.ps1
+*.log
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.user
+Thumbs.db
+desktop.ini
