@@ -40,14 +40,14 @@ $venvPython = Get-ChildItem (Join-Path $Root 'idf-tools\python_env') -Directory 
               Where-Object { Test-Path $_ } | Select-Object -First 1
 
 $esptool = $null
-if ($venvPython) { $esptool = @($venvPython, '-m', 'esptool') }
-elseif (Get-Command uv -ErrorAction SilentlyContinue) { $esptool = @('uv', 'tool', 'run', 'esptool') }
-else { throw "找不到 esptool：既没有 IDF python 环境，也没有 uv" }
+if (Get-Command uv -ErrorAction SilentlyContinue) { $esptool = @('uv', 'tool', 'run', 'esptool') }
+elseif ($venvPython) { $esptool = @($venvPython, '-m', 'esptool') }
+else { throw "找不到 esptool：既没有 uv，也没有 IDF python 环境" }
 
 $args = @() + $esptool + @(
     '--port', $Port, '--chip', 'esp32', '--baud', "$Baud",
-    '--before', 'default-reset', '--after', 'hard-reset',
-    'write-flash', '-z', '--flash-mode', 'dio', '--flash-freq', '80m', '--flash-size', '4MB',
+    '--before', 'default_reset', '--after', 'hard_reset',
+    'write_flash', '-z', '--flash_mode', 'dio', '--flash_freq', '80m', '--flash_size', '4MB',
     '0x0', $Bin
 )
 Write-Host "--- 写入 ---"
@@ -78,3 +78,4 @@ if ($Monitor) {
     Write-Host $o.Substring($i)
     if ($o -match 'Guru Meditation') { Write-Warning '启动日志里有 Guru Meditation（崩溃）' }
 }
+

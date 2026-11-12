@@ -186,6 +186,7 @@ static uint32_t s_gap_us = 500000;
 
 /* 点击音 */
 static int s_click_left_ms = 0;
+static int64_t s_last_bar_us = 0;
 
 /* tap tempo */
 static uint32_t s_tap_ms[4];
@@ -294,6 +295,15 @@ static void engine_reset(void)
 static void engine_fire(void)
 {
     const int at_beat = (s_sub_i == 0);
+    if (at_beat && s_beat_i == 0) {          /* 每小节一次：实测小节间隔，便于验证 BPM */
+        int64_t now = esp_timer_get_time();
+        if (s_last_bar_us > 0) {
+            int64_t dt = now - s_last_bar_us;
+            int64_t exp = (int64_t)s_beats * (60000000 / s_bpm);
+            ESP_LOGI(TAG, "bar dt=%lldms exp=%lldms", (long long)(dt / 1000), (long long)(exp / 1000));
+        }
+        s_last_bar_us = now;
+    }
     if (at_beat) {
         const bool accent = (s_accent != 0) || (s_beat_i == 0);
         if (accent) click(2093, 30, 200);   /* C7，响一点、长一点 */
@@ -1082,6 +1092,7 @@ void app_main(void)
     BaseType_t ok = xTaskCreate(app_task, "metro", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, NULL);
     ESP_ERROR_CHECK(ok == pdPASS ? ESP_OK : ESP_FAIL);
 }
+
 
 
 
