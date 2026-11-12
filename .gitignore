@@ -12,6 +12,7 @@ sdkconfig.old
 dist/*
 !dist/xiaomiao-morse-merged.bin
 !dist/xiaomiao-midi-merged.bin
+!dist/xiaomiao-metronome-merged.bin
 
 # ---- 本机工具链 / 临时目录（体积巨大，绝不入库）----
 idf/
@@ -44,3 +45,4 @@ flash-when-*.ps1
 *.user
 Thumbs.db
 desktop.ini
+

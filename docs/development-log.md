@@ -360,3 +360,40 @@ font selftest: 7 ok, 0 bad -> PASS
 ## 当前产物
 `dist\xiaomiao-morse-merged.bin`，735,232 B，sha256 `2C30D90207859DBDF634B5DC4C6C9A5FC23C053F5EF271BBB8CBEAE032AEF7C6`
 启动无 panic、无重启，`Start morse trainer UI` 后正常进入主循环。
+
+---
+
+# 节拍器固件（2026-11-12）
+
+新工程 `project/xiaomiao-metronome`，复用已验证的 ST7735/LVGL/蜂鸣器/6 键/GD32 LED 底层。
+
+## 拍点引擎
+- 1ms `esp_timer` + 微秒相位累加：`acc_us += 1000`，`while (acc_us >= gap_us) { acc_us -= gap_us; fire(); }`
+  → 平均 BPM 不漂移；高 BPM 或高细分（一毫秒内多个拍）不会丢。
+- `beat_us = 60_000_000 / BPM`，`gap_us = beat_us / 细分`，`gap_us` 下限 5000µs（防抖）。
+- 开拍时 `engine_reset()` 后立刻 `engine_fire()` 补第一拍，手感跟手。
+- 点击音：重音 2093Hz/30ms、普通 1568Hz/20ms、细分 1047Hz/12ms，由 1ms tick 倒数关断（单声道蜂鸣器足够，因为都是短音）。
+
+## 界面
+- 24px 主显 BPM 数字（方舟 ark24，与摩斯固件同一份，ASCII 0x20-0x7E）
+- 卡片右下显示拍号；下方一排拍点圆点（按拍数动态排布、当前拍高亮、首拍用 cream 色）
+- 拍内进度条用相位 `acc_us/gap_us` 驱动，25fps 刷新
+- 设置页 6 行（拍号/细分/重音/闪灯/声音/键位引导），行高 17px、总高 102px（128 屏放得下）
+- **踩坑**：初版设置列表用 19px 行距，6 行 114px + 顶部 21px = 135 > 128 —— 底行被裁；
+  且 info/进度/状态行与列表重叠（和摩斯固件同一类"切页残留"问题）。已改为
+  `apply_view2()` 统一裁决：主界面才显示 info/bar/state/hint，列表页与引导页一律隐藏。
+
+## 编译问题
+- `C_WHITE` 定义未使用 → `-Werror=unused-const-variable`（和之前 `C_RED`/`C_MODE` 同类）。
+  记住：**颜色常量只定义用得到的**。
+- 文案宽度：初版 3 处超 148px（`规划: I2S ...` 156、`细分 ×%d · 重音 %s · %s` 222、`U/D 选 ...` 192）→
+  按 `check_layout.py` 收紧到 0 超标（缩短文案 + 声音状态挪到 header 右侧显示"静音"）。
+
+## 调音器（规划，未接硬件）
+`MODE_TUNER` 已留槽：长按 B 进入占位页（显示 I2S 引脚），`PIN_MIC_BCK/WS/DATA = 25/26/32` 已定义。
+硬件用 INMP441/ICS-43434 I2S 数字麦；16kHz/16bit 单声道；基频用自相关/YIN（不用 FFT 峰值，谐波强会上八度）。
+到时只需补 `tuner_tick()` 与调音器界面。
+
+## 产物
+`dist/xiaomiao-metronome-merged.bin`，736,096 B，sha256 `DA1A62F3FF21B36D5E4B1CFBAAC035963C2939DB3C42446A3D682B81A8EA9395`
+（本机 COM6 当时不在线，未上机验证；ark12/ark24 字体符号与关键字符串已确认在镜像内。）

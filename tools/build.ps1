@@ -14,7 +14,7 @@
 #>
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('morse', 'midi', 'xueersi')]
+    [ValidateSet('morse', 'midi', 'metronome', 'xueersi')]
     [string]$Project,
 
     [string]$IdfPath,
@@ -28,8 +28,8 @@ $Root = Split-Path -Parent $PSScriptRoot
 $IdfPath   = if ($IdfPath)   { $IdfPath }   elseif ($env:IDF_PATH)       { $env:IDF_PATH }       else { Join-Path $Root 'idf\esp-idf-v5.5.4' }
 $ToolsPath = if ($ToolsPath) { $ToolsPath } elseif ($env:IDF_TOOLS_PATH) { $env:IDF_TOOLS_PATH } else { Join-Path $Root 'idf-tools' }
 
-$dirName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'xueersi' { 'xueersi-idf' } }
-$binName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'xueersi' { 'xiaomiao' } }
+$dirName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'metronome' { 'xiaomiao-metronome' } 'xueersi' { 'xueersi-idf' } }
+$binName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'metronome' { 'xiaomiao-metronome' } 'xueersi' { 'xiaomiao' } }
 $Proj     = Join-Path $Root "project\$dirName"
 $Dist     = Join-Path $Root 'dist'
 $Log      = Join-Path $Root "build-$Project.log"
@@ -99,3 +99,5 @@ try {
 finally {
     Pop-Location
 }
+
+

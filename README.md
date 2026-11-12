@@ -12,6 +12,7 @@
 |---|---|---|
 | **摩斯码训练器** | 5 个模式：查询 / 顺序学 / 听辨 / 发报 / 设置。中文界面（方舟 12px + 24px 主显）、开机字体自检、设置写 NVS、板载 LED 做按键与发报指示 | `dist/xiaomiao-morse-merged.bin` |
 | **MIDI 播放器** | 内置 SMF 解析（格式 0/1、VLQ 变速、running status），事件表放 PSRAM；支持 SD 卡曲目；单声道蜂鸣器上用**轮换换音近似和弦** | `dist/xiaomiao-midi-merged.bin` |
+| **节拍器** | BPM 30–300、拍号 2–12 拍、细分 ×1–4、首拍/每拍重音、打拍定速、屏幕拍点 + LED 闪光。**预留调音器模式**（I2S 麦克风未到，先放占位页） | `dist/xiaomiao-metronome-merged.bin` |
 
 ### 摩斯码训练器操作
 
@@ -26,6 +27,37 @@
 全局：**长按 `L/R` 换模式**，**长按 `A` 循环 WPM**（5/8/10/12/15/20），发报模式下**长按 `U` 切单/双键**。
 模式 / WPM / 单双键 / 学习进度 / 声音开关全部写 NVS，重启保留。
 只在模式页显示「非直觉」的长按提示；上下选择、左右翻页、A 确认、B 返回这类直觉操作不占屏幕，完整键位图放在设置页。
+
+### 节拍器操作
+
+| 键 | 作用 |
+|---|---|
+| **A** | 开始 / 停止；**长按 A** 进设置页 |
+| **B** | **打拍定速**（连按几下跟着节奏点，自动算 BPM）；**长按 B** 切到调音器页 |
+| **U / D** | BPM −1 / +1；**长按** 拍数 −1 / +1 |
+| **L / R** | BPM −5 / +5；**长按** 细分循环 1→2→3→4 |
+
+设置页（长按 A）：拍号 / 细分 / 重音 / 闪灯 / 声音 / 键位引导。
+BPM、拍号、细分、重音、闪灯、声音全部写 NVS。
+
+**拍点引擎**：1ms `esp_timer` + **微秒相位累加**（`acc_us += 1000`，越过 `gap_us` 就出拍并减去），所以平均节拍不漂移，
+高 BPM/高细分时一毫秒内可出多个拍也不会丢。`beat_us = 60e6 / BPM`，`gap_us = beat_us / 细分`。
+BPM 指"拍值单位的每分钟拍数"（6/8 时一拍 = 八分音符），这点和大多数简易节拍器一致。
+
+### 调音器：规划（硬件还没买，先留槽）
+代码里 `MODE_TUNER` 已留好：长按 B 可切进去，页面显示 `I2S BCK25 WS26 DAT32` 占位，
+`PIN_MIC_BCK/WS/DATA` 宏已定义。等麦克风到了只需实现 `tuner_tick()` + 调音器界面，其余不用动。
+
+- **硬件**：I2S MEMS 数字麦（INMP441 或 ICS-43434，淘宝 10~20 元），走本板空闲的 EXT 口：
+  `BCK=GPIO25  WS/LRCK=GPIO26  DATA=GPIO32  VDD=3V3  GND`（L/R 脚接地选左声道）。
+  数字麦比模拟麦省 ADC，且信噪比够做音准。
+- **采样**：16 kHz / 16 bit / 单声道，DMA 双缓冲，每帧 1024~2048 点（≈64~128ms）。
+- **基频检测**：用**自相关 / YIN**，不要用 FFT 峰值——乐器谐波比基频强时 FFT 会锁到高八度。
+  流程：去直流 → 加窗 → 自相关 → 归一化找第一个显著主峰 → 抛物线插值细化 lag → `f = fs / lag`。
+  16 kHz、lag 范围约 13~200（80Hz~1200Hz），1024 点自相关约 20 万次乘加/帧，240MHz 下 20fps 无压力。
+- **界面**：音名 + `cents`（−50..+50）指针 + 偏差条；准了变绿。
+- **可选扩展**：参考音播放（用蜂鸣器发 A4=440Hz，需先把蜂鸣器频率调到音频段）、吉他/贝斯模式（限 lag 范围）、
+  半音阶口琴等。麦克风到了我先做"测音高 + 音分"最小闭环，再接参考音。
 
 ---
 
@@ -64,6 +96,7 @@ pwsh -File tools/build.ps1 -Project morse -IdfPath D:\esp-idf -ToolsPath D:\espr
 ```powershell
 pwsh -File tools/build.ps1 -Project morse     # 首次全量约 6 分钟，增量约 40 秒
 pwsh -File tools/build.ps1 -Project midi
+pwsh -File tools/build.ps1 -Project metronome
 pwsh -File tools/build.ps1 -Project xueersi   # 上游 dashboard 工程
 ```
 
@@ -138,6 +171,7 @@ py -3.10 tools/check_layout.py --font project/xiaomiao-morse/main/ark12_font.c `
 ├─ project/
 │  ├─ xiaomiao-morse/     # 摩斯码训练器（含生成的 ark12/ark24 字体）
 │  ├─ xiaomiao-midi/      # MIDI 播放器
+│  ├─ xiaomiao-metronome/ # 节拍器（+ 调音器占位）
 │  └─ xueersi-idf/        # 上游 dashboard 工程（参考）
 ├─ tools/
 │  ├─ gen_ark_font.py     # TTF → LVGL fmt_txt 字体（含 tofu 检查）
