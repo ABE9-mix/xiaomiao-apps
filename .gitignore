@@ -25,7 +25,7 @@ build*.log
 backup/
 
 # ---- 上游第三方源码：本地保留用于构建，仓库里只留链接 ----
-project/xueersi-idf/
+apps/xueersi-idf/
 
 # ---- 下载缓存 / 社区固件 / 原始素材 ----
 community/
@@ -45,4 +45,5 @@ flash-when-*.ps1
 *.user
 Thumbs.db
 desktop.ini
+
 

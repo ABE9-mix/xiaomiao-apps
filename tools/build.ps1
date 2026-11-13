@@ -28,9 +28,9 @@ $Root = Split-Path -Parent $PSScriptRoot
 $IdfPath   = if ($IdfPath)   { $IdfPath }   elseif ($env:IDF_PATH)       { $env:IDF_PATH }       else { Join-Path $Root 'idf\esp-idf-v5.5.4' }
 $ToolsPath = if ($ToolsPath) { $ToolsPath } elseif ($env:IDF_TOOLS_PATH) { $env:IDF_TOOLS_PATH } else { Join-Path $Root 'idf-tools' }
 
-$dirName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'metronome' { 'xiaomiao-metronome' } 'xueersi' { 'xueersi-idf' } }
+$dirName  = switch ($Project) { 'morse' { 'morse-trainer' } 'midi' { 'midi-player' } 'metronome' { 'metronome' } 'xueersi' { 'xueersi-idf' } }
 $binName  = switch ($Project) { 'morse' { 'xiaomiao-morse' } 'midi' { 'xiaomiao-midi' } 'metronome' { 'xiaomiao-metronome' } 'xueersi' { 'xiaomiao' } }
-$Proj     = Join-Path $Root "project\$dirName"
+$Proj     = Join-Path $Root "apps\$dirName"
 $Dist     = Join-Path $Root 'dist'
 $Log      = Join-Path $Root "build-$Project.log"
 $Tmp      = Join-Path $Root 'tmp'
@@ -99,5 +99,6 @@ try {
 finally {
     Pop-Location
 }
+
 
 
