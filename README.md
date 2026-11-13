@@ -1,10 +1,10 @@
 # XIAOMIAO 掌机程序合集
 
-学而思「小喵」ESP32 掌机的第三方程序合集。原厂固件是一个「AC 遥控 v2」（源码未公开），
-这里全部是逆向硬件后重写的独立固件，用 ESP-IDF v5.5.4 + LVGL 9.5 从零实现。
+学而思「小喵」掌机（ESP32-D0WD，8MB PSRAM / 4MB Flash，160×128 屏幕）上运行的程序合集，
+基于 **ESP-IDF v5.5.4 + LVGL 9.5** 编写。
 
-> ⚠️ **每个程序是独立的整片固件（从 `0x0` 整片刷），彼此互斥** —— 刷一个就覆盖上一个。
-> 它们不是同一个固件里的多个页面；想换功能就重刷对应的 bin。日常不会同时存在。
+> ⚠️ 每个程序是一个**独立的整片固件**（从 `0x0` 整片刷），彼此**互斥** —— 刷一个就覆盖上一个。
+> 它们不是同一个固件里的多个页面；想换功能就重刷对应的 bin。
 
 ## 程序一览
 
@@ -53,7 +53,7 @@ python -m esptool --port COM6 --chip esp32 --baud 460800 read_flash 0 0x400000 b
 
 - **方舟像素字体流水线**（12px 界面 + 24px 主显，含 tofu 检查与四个踩坑）→ [docs/ark-font.md](docs/ark-font.md)
 - **构建 / 刷写脚本** → [tools/](tools/)（`build.ps1` 参数化路径、`flash.ps1` 带启动日志抓取）
-- **逐条开发记录**（硬件逆向、LVGL 三缓冲、白屏事故 addr2line 复盘、和弦物理极限等）→ [docs/development-log.md](docs/development-log.md)
+- **开发笔记**（LVGL 三缓冲、白屏事故 addr2line 复盘、和弦的物理极限、各程序实现细节）→ [docs/development-log.md](docs/development-log.md)
 
 ## 目录结构
 
@@ -61,21 +61,21 @@ python -m esptool --port COM6 --chip esp32 --baud 460800 read_flash 0 0x400000 b
 ├─ apps/
 │  ├─ morse-trainer/      # 摩斯码训练器（含生成的 ark12/ark24 字体）
 │  ├─ midi-player/        # MIDI 播放器
-│  ├─ metronome/          # 节拍器（+ 调音器占位）
-│  └─ xueersi-idf/        # 上游 dashboard 工程（本地参考，未入库）
+│  └─ metronome/          # 节拍器（+ 调音器占位）
 ├─ tools/
 │  ├─ gen_ark_font.py     # TTF → LVGL fmt_txt 字体（含 tofu 检查）
 │  ├─ check_layout.py     # 离线排版/缺字/点阵校验
 │  ├─ build.ps1           # 构建（可移植）
 │  └─ flash.ps1           # 刷入 + 抓启动日志
 ├─ dist/                  # 三个程序的合并固件（0x0 整片刷）
-└─ docs/                  # 字体流水线 + 开发日志
+└─ docs/                  # 字体流水线 + 开发笔记
 ```
 
-## 上游与相关项目
-- [ZyoungInc/xueersi-idf](https://github.com/ZyoungInc/xueersi-idf) —— 小喵掌机 ESP-IDF 工程与原理图（本仓库未包含其源码，仅本地保留用于构建 dashboard）
-- [pysn2012/xueersi-xiaomiao](https://github.com/pysn2012/xueersi-xiaomiao) —— 社区资料与预编译固件
-- 社区 MicroPython 固件（LVGL 9.3 / SPI 屏版本）见开发日志
+## 参考
+
+- [ZyoungInc/xueersi-idf](https://github.com/ZyoungInc/xueersi-idf) —— 同款掌机的原理图与 ESP-IDF 工程，引脚定义可对照
+- [Ark Pixel Font](https://github.com/TakWolf/ark-pixel-font) —— 界面所用像素字体（SIL OFL）
 
 ## 许可
-本仓库自有代码可自由使用。方舟像素字体（Ark Pixel Font）为 SIL OFL；`apps/xueersi-idf/` 等第三方内容遵循各自原始许可。
+
+本仓库自有代码可自由使用；第三方内容（方舟像素字体等）遵循各自原始许可。

@@ -1,4 +1,7 @@
-# 小喵掌机 (xueersi-xiaomiao) 刷固件记录
+# 小喵掌机 (xueersi-xiaomiao) 开发笔记
+
+> **更正（2026-11-13）**：早期记录里把设备里原有的「AC 遥控 v2」称作「原厂固件」是不准确的 ——
+> 那份是**本机 Hermes 生成的一份 demo 固件**（功能不完整），并非小喵的出厂固件。下文涉及处已改为「原有 demo 固件」。
 
 > 目标设备：学而思 ESP32 小喵掌机（ESP32-D0WD rev1.0 + 8MB PSRAM + 4MB Flash，MAC `90:38:0c:d1:f1:d8`）
 > 串口：`COM6` = `USB 串行设备 (GD32F3X0-1.0.0-7Z8X9YER)`，VID_28E9&PID_018A（板载 GD32F350 做 USB-CDC 串口桥 + 自动下载/复位）
@@ -30,7 +33,7 @@
 
 ## 二、刷机前的状态（已整片备份）
 
-刷之前设备里跑的是 **2026-07-13 本地 dirty 编译的 ESP-IDF 固件**（project `xiaomiao`、App version `stable-6-gaabf45e-dirty`、UI 是「AC 遥控 v2」、IR TX GPIO25），**这份 AC 遥控源码不在仓库里**。
+刷之前设备里跑的是 **2026-07-13 本地 dirty 编译的 ESP-IDF demo 固件**（project `xiaomiao`、App version `stable-6-gaabf45e-dirty`、UI 是「AC 遥控 v2」、IR TX GPIO25），**这份 demo 源码不在仓库里**。
 
 - 整片 4MB 备份：`backup\xiaomiao-stock-4MB.bin`（SHA256 见文件哈希，可用下面的回滚命令原样写回）。
 
@@ -75,7 +78,7 @@ uv tool run esptool --port COM6 --chip esp32 --baud 460800 ^
   0x0 F:\AIchat\xiaomiao-flash\dist\xiaomiao-merged.bin
 ```
 
-### 回滚到前一份固件（AC 遥控 dirty build，整片 4MB）
+### 回滚到之前那份 demo 固件（整片 4MB 备份）
 ```powershell
 uv tool run esptool --port COM6 --chip esp32 --baud 460800 ^
   --before default_reset --after hard_reset write-flash -z ^
@@ -148,7 +151,7 @@ SD 卡（FAT32）根目录放 `*.mid` 即可，重新上电会自动扫描；选
 
 ## 回滚
 - 回「硬件 dashboard」固件：刷 `dist\xiaomiao-merged.bin`
-- 回原厂/AC 遥控固件：刷 `backup\xiaomiao-stock-4MB.bin`
+- 回之前那份 demo 固件：刷 `backup\xiaomiao-stock-4MB.bin`
 
 ### 和弦（琶音）与档位（2026-11-06 定稿）
 - 单只无源蜂鸣器同一时刻只能一个频率，"和弦"用**轮换换音近似**：统计当前按下的所有音高，由独立 **1 ms esp_timer**（`arp_timer_cb`）每 `s_arp_ms` 换一个音。
@@ -397,3 +400,4 @@ font selftest: 7 ok, 0 bad -> PASS
 ## 产物
 `dist/xiaomiao-metronome-merged.bin`，736,096 B，sha256 `DA1A62F3FF21B36D5E4B1CFBAAC035963C2939DB3C42446A3D682B81A8EA9395`
 （本机 COM6 当时不在线，未上机验证；ark12/ark24 字体符号与关键字符串已确认在镜像内。）
+
